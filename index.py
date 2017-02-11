@@ -36,9 +36,9 @@ def valid_pw(name, pw, h):
 
 
 class User(db.Model):
-	username = db.StringProperty(required = True)
-	password = db.StringProperty(required = True)
-	salt = db.StringProperty(required = True)
+	username = db.StringProperty(required=True)
+	password = db.StringProperty(required=True)
+	salt = db.StringProperty(required=True)
 	email = db.StringProperty()
 
 
@@ -123,19 +123,14 @@ class MainPage(Handler):
 
 class WelcomeHandler(Handler):
 	def get(self):
-		# welcome page checks cookie id for user_id and hash
-		# if user_id and hash match the database they can stay there
-		# get username from database to display on welcome page
-		# if not redirect them to sign up page
 		user_cookie_str = self.request.cookies.get('user')
 		user_id_cookie_str = user_cookie_str.split('|')[0]
 		user_hash_cookie_str = user_cookie_str.split('|')[1]
-		get_username = db.GqlQuery("SELECT * FROM User WHERE ID='" +
-		                           user_id_cookie_str + "'")
-		if get_username.count():
-			if get_username.get().username:
-				username_from_db = get_username.get().username
-				self.render("welcome.html", username=username_from_db)
+		db_user = User.get_by_id(int(user_id_cookie_str))
+		
+		if db_user:
+			if user_hash_cookie_str == db_user.password:
+				self.render("welcome.html", username=db_user.username)
 		else:
 			self.redirect('/signup')
 
